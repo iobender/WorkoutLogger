@@ -1,0 +1,3 @@
+-- Matthew Bender
+--
+-- exerlog.hs: workout logger
