@@ -18,7 +18,7 @@ data DistanceWorkoutType = Run | Bike | Swim | OtherDistance String deriving Sho
 data CoreWorkout = 
 	CoreWorkout {
 		cwt :: CoreWorkoutType,
-		coreReps
+		coreReps :: Int
 	} deriving Show
 data CoreWorkoutType = Pushups | Crunches | SideDips | OtherCore String deriving Show
 
@@ -36,3 +36,11 @@ data SportsWorkout =
 		duration :: Time
 	} deriving Show
 data SportsWorkoutType = Baseball | Soccer | Frisbee | Football | OtherSports String deriving Show
+
+class WorkoutLogger w where
+	workoutToString :: w -> String
+	workoutToLine :: w -> String
+
+
+-- test vars
+run = Distance $ DistanceWorkout Run 3.1 17
