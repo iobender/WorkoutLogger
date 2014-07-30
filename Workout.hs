@@ -7,12 +7,7 @@ import Data.List
 
 type Time = Int
 
-data Data = D1 { n :: Int } | D2 { b :: Bool } | D3 { s :: String } deriving Show
-
 -- workout types
--- fields with type wrapped in Maybe are optional
---data Workout = Distance DistanceWorkout | Core CoreWorkout | Weights WeightsWorkout | Sports SportsWorkout deriving Show
---data Workout w => WorkoutType w = Workout w
 data Workout a where
 	Workout :: WorkoutType w => w -> Workout w 
 unWorkout :: WorkoutType w => Workout w -> w
