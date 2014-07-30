@@ -1,6 +1,9 @@
 -- Matthew Bender
 --
--- exerlog.hs: workout logger
+-- describes various types of workouts
+
+module Workout where
+
 type Time = Int
 
 -- workout types
