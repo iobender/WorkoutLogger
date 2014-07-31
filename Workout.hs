@@ -7,72 +7,62 @@ import Data.List
 
 type Time = Int
 
--- workout types
-data Workout a where
-	Workout :: WorkoutType w => w -> Workout w 
-unWorkout :: WorkoutType w => Workout w -> w
-unWorkout (Workout w) = w
-instance Show (Workout w) where
-	show (Workout w) = "Workout:\n" ++ (workoutTypeToString w)
-
-data DistanceWorkout = 
-	DistanceWorkout { 
+data Workout = Workout Difficulty WorkoutType deriving (Eq, Show)
+data Difficulty = Easy | Medium | Hard deriving (Eq, Show)
+data WorkoutType = 
+	Distance { 
 		dwt :: DistanceWorkoutType,
 		distance :: Float,
 		time :: Time
-	} deriving Show
-data DistanceWorkoutType = Run | Bike | Swim | OtherDistance String deriving Show
-instance WorkoutType DistanceWorkout where
-	workoutTypeToTokens w = 
-		["Type: " ++ (show $ dwt w)] ++ 
-		["Distance: " ++ (show $ distance w)] ++ 
-		["Time: " ++ (show $ time w)]
-
-data CoreWorkout = 
-	CoreWorkout {
+	} | 
+	Core {
 		cwt :: CoreWorkoutType,
 		coreReps :: Int
-	} deriving Show
-data CoreWorkoutType = Pushups | Crunches | SideDips | OtherCore String deriving Show
-instance WorkoutType CoreWorkout where
-	workoutTypeToTokens w = 
-		["Type: " ++ (show $ cwt w)] ++
-		["Reps: " ++ (show $ coreReps w)]
-
-data WeightsWorkout = 
-	WeightsWorkout {
+	} |
+	Weights {
 		wwt :: WeightsWorkoutType,
 		weight :: Int,
 		weightReps :: Int
-	} deriving Show
-data WeightsWorkoutType = Curls | Bench | OtherWeights String deriving Show
-instance WorkoutType WeightsWorkout where
-	workoutTypeToTokens w = 
+	} |
+	Sports {
+		swt :: SportsWorkoutType,
+		duration :: Time
+	} 
+	deriving (Eq, Show)
+
+data DistanceWorkoutType = Run | Bike | Swim | OtherDistance String deriving (Eq, Show)
+data CoreWorkoutType = Pushups | Crunches | SideDips | OtherCore String deriving (Eq, Show)
+data WeightsWorkoutType = Curls | Bench | OtherWeights String deriving (Eq, Show)
+data SportsWorkoutType = Baseball | Soccer | Frisbee | Football | OtherSports String deriving (Eq, Show)
+
+workoutTypeToTokens :: WorkoutType -> [String]
+workoutTypeToTokens w = case w of
+	Distance _ _ _ -> 
+		["Type: " ++ (show $ dwt w)] ++ 
+		["Distance: " ++ (show $ distance w)] ++ 
+		["Time: " ++ (show $ time w)]
+	Core _ _ -> 
+		["Type: " ++ (show $ cwt w)] ++
+		["Reps: " ++ (show $ coreReps w)]
+	Weights _ _ _ -> 
 		["Type: " ++ (show $ wwt w)] ++ 
 		["Weight: " ++ (show $ weight w)] ++ 
 		["Reps: " ++ (show $ weightReps w)]
-
-data SportsWorkout = 
-	SportsWorkout {
-		swt :: SportsWorkoutType,
-		duration :: Time
-	} deriving Show
-data SportsWorkoutType = Baseball | Soccer | Frisbee | Football | OtherSports String deriving Show
-instance WorkoutType SportsWorkout where
-	workoutTypeToTokens w = 
+	Sports _ _ ->
 		["Type: " ++ (show $ swt w)] ++
 		["Duration: " ++ (show $ duration w)] 
 
-class WorkoutType w where
-	workoutTypeToTokens :: w -> [String]
-	workoutTypeToString :: w -> String
-	workoutTypeToString = (unlines . workoutTypeToTokens)
-	workoutTypeToLine :: w -> String
-	workoutTypeToLine wt = (intercalate s $ workoutTypeToTokens wt) ++ s
-		where
-		s = "|"
+workoutTypeToString :: WorkoutType -> String
+workoutTypeToString = (unlines . workoutTypeToTokens)
 
-workoutToString :: WorkoutType w => Workout w -> String
-workoutToString w = "Workout:\n" ++ (unlines $ map (\l -> "\t" ++ l) (lines $ workoutTypeToString $ unWorkout w))
-workoutToLine :: WorkoutType w => Workout w -> String
-workoutToLine w = "Workout: " ++ (workoutTypeToLine . unWorkout) w
+workoutTypeToLine :: WorkoutType -> String
+workoutTypeToLine = intercalate "|" . workoutTypeToTokens
+
+workoutToString :: Workout -> String
+workoutToString (Workout d w) = show d ++ " workout:\n" ++ indent (workoutTypeToString w)
+
+workoutToLine :: Workout -> String
+workoutToLine (Workout d w) = show d ++ " workout: " ++ workoutTypeToLine w
+
+indent :: String -> String
+indent = unlines . map ("\t"++) . lines
