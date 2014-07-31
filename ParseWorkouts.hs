@@ -2,5 +2,6 @@ module ParseWorkouts where
 
 import Workout
 
-getWorkout :: WorkoutType w => IO (Workout w)
-getWorkout = getLine >>= return . Workout . (\s -> if null s then DistanceWorkout Swim 1 30 else SportsWorkout Frisbee 100)
+getWorkout :: IO Workout
+--placeholder for actual parsing of input
+getWorkout = return $ Workout Easy $ Sports Frisbee 100
