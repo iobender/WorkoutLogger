@@ -72,14 +72,7 @@ class WorkoutType w where
 		where
 		s = "|"
 
-workoutToString :: Workout w -> String
-workoutToString (Workout w) = "Workout:\n" ++ (unlines $ map (\l -> "\t" ++ l) (lines $ workoutTypeToString $ w))
-workoutToLine :: Workout w -> String
-workoutToLine (Workout w) = "Workout: " ++ workoutTypeToLine w
-
--- test vars
-run = Workout $ DistanceWorkout Run 3.1 17
-runW = unWorkout run
-
-curl = Workout $ WeightsWorkout Curls 25 15
-curlW = unWorkout curl
+workoutToString :: WorkoutType w => Workout w -> String
+workoutToString w = "Workout:\n" ++ (unlines $ map (\l -> "\t" ++ l) (lines $ workoutTypeToString $ unWorkout w))
+workoutToLine :: WorkoutType w => Workout w -> String
+workoutToLine w = "Workout: " ++ (workoutTypeToLine . unWorkout) w
