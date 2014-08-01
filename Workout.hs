@@ -33,6 +33,11 @@ data WorkoutType =
 		duration :: Time
 	} 
 	deriving (Eq, Show)
+workoutTypeFuncMap :: [(String, IO WorkouType)]
+workoutTypeFuncMap = [("distance", getDistanceWorkout),
+		      ("core", getCoreWorkout),
+	      	      ("weights", getWeightsWorkout),
+		      ("sports", getSportsWorkout)]	      
 
 data DistanceWorkoutType = Run | Bike | Swim | OtherDistance String deriving (Eq, Show)
 data CoreWorkoutType = Pushups | Crunches | SideDips | OtherCore String deriving (Eq, Show)
