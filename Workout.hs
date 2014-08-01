@@ -10,8 +10,6 @@ type Time = Int
 data Workout = Workout Difficulty WorkoutType deriving (Eq, Show)
 
 data Difficulty = Easy | Medium | Hard deriving (Eq, Show)
-difficultyStrMap :: [(String, Difficulty)]
-difficultyStrMap = [("easy", Easy), ("medium", Medium), ("hard", Hard)]
 
 data WorkoutType = 
 	Distance { 
@@ -33,11 +31,6 @@ data WorkoutType =
 		duration :: Time
 	} 
 	deriving (Eq, Show)
-workoutTypeFuncMap :: [(String, IO WorkouType)]
-workoutTypeFuncMap = [("distance", getDistanceWorkout),
-		      ("core", getCoreWorkout),
-	      	      ("weights", getWeightsWorkout),
-		      ("sports", getSportsWorkout)]	      
 
 data DistanceWorkoutType = Run | Bike | Swim | OtherDistance String deriving (Eq, Show)
 data CoreWorkoutType = Pushups | Crunches | SideDips | OtherCore String deriving (Eq, Show)
