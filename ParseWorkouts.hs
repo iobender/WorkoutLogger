@@ -17,8 +17,7 @@ getWorkout = return $ Workout Easy $ Sports Frisbee 100
 getDifficulty :: IO Difficulty
 getDifficulty = 
 	getLine >>= 
-	return .
 	(\s -> case lookstr s difficultyStrMap of
-	 	Nothing -> Easy
-		Just d -> d)
+	 	Nothing -> getDifficulty
+		Just d -> return d)
 
