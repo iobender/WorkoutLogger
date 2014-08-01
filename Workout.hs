@@ -8,7 +8,11 @@ import Data.List
 type Time = Int
 
 data Workout = Workout Difficulty WorkoutType deriving (Eq, Show)
+
 data Difficulty = Easy | Medium | Hard deriving (Eq, Show)
+difficultyStrMap :: [(String, Difficulty)]
+difficultyStrMap = [("easy", Easy), ("medium", Medium), ("hard", Hard)]
+
 data WorkoutType = 
 	Distance { 
 		dwt :: DistanceWorkoutType,
