@@ -9,6 +9,7 @@ import Workout
 lookup' :: String -> [(String, a)] -> Maybe a
 lookup' = lookup . unwords . words . map toLower
 
+--reads from stdin until the line is readable for the correct type
 getRead :: Read a => String -> IO a
 getRead p = 
 	putStr p >> 
@@ -36,6 +37,8 @@ getWorkout = do
 	wt <- getWorkoutTypeFunc >>= (\f -> f >>= return)
 	return $ Workout diff wt
 
+--the below are helper functions to aid in getting a Workout
+
 getDifficulty :: IO Difficulty
 getDifficulty = getLookup "Diff: " [("easy", Easy), ("medium", Medium), ("hard", Hard)]
 
@@ -43,23 +46,23 @@ getWorkoutTypeFunc :: IO (IO WorkoutType)
 getWorkoutTypeFunc = getLookup "type: " [("distance", getDistanceWorkout), ("core", getCoreWorkout), ("weights", getWeightsWorkout), ("sports", getSportsWorkout)]	       
 
 getDistanceWorkout = do
-	dwt <- getLookup "dist type: " [("run", Run), ("bike", Bike), ("swim", Swim)]
+	dw <- getLookup "dist type: " [("run", Run), ("bike", Bike), ("swim", Swim)]
 	distance <- getRead "distance: "
 	time <- getRead "time: "
-	return $ Distance dwt distance time
+	return $ Distance dw distance time
 
 getCoreWorkout = do
-	cwt <- getLookup "core type: " [("pushups", Pushups), ("crunches", Crunches), ("sidedips", SideDips)]
+	cw <- getLookup "core type: " [("pushups", Pushups), ("crunches", Crunches), ("sidedips", SideDips)]
 	coreReps <- getRead "reps: "
-	return $ Core cwt coreReps
+	return $ Core cw coreReps
 
 getWeightsWorkout = do
-	wwt <- getLookup "weights type: " [("curls", Curls), ("bench", Bench)]
+	ww <- getLookup "weights type: " [("curls", Curls), ("bench", Bench)]
 	weight <- getRead "weight: "
-	weightReps <- getRead "weightReps"
-	return $ Weights wwt weight weightReps
+	weightReps <- getRead "reps: "
+	return $ Weights ww weight weightReps
 
 getSportsWorkout = do
-	swt <- getLookup "sports type: " [("baseball", Baseball), ("soccer", Soccer), ("frisbee", Frisbee), ("football", Football)]
+	sw <- getLookup "sports type: " [("baseball", Baseball), ("soccer", Soccer), ("frisbee", Frisbee), ("football", Football)]
 	duration <- getRead "duration: "
-	return $ Sports swt duration
+	return $ Sports sw duration

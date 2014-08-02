@@ -13,50 +13,53 @@ data Difficulty = Easy | Medium | Hard deriving (Eq, Show)
 
 data WorkoutType = 
 	Distance { 
-		dwt :: DistanceWorkoutType,
+		dw :: DistanceWorkout,
 		distance :: Float,
 		time :: Time
 	} | 
 	Core {
-		cwt :: CoreWorkoutType,
+		cw :: CoreWorkout,
 		coreReps :: Int
 	} |
 	Weights {
-		wwt :: WeightsWorkoutType,
+		ww :: WeightsWorkout,
 		weight :: Int,
 		weightReps :: Int
 	} |
 	Sports {
-		swt :: SportsWorkoutType,
+		sw :: SportsWorkout,
 		duration :: Time
 	} 
 	deriving (Eq, Show)
 
-data DistanceWorkoutType = Run | Bike | Swim | OtherDistance String deriving (Eq, Show)
-data CoreWorkoutType = Pushups | Crunches | SideDips | OtherCore String deriving (Eq, Show)
-data WeightsWorkoutType = Curls | Bench | OtherWeights String deriving (Eq, Show)
-data SportsWorkoutType = Baseball | Soccer | Frisbee | Football | OtherSports String deriving (Eq, Show)
+data DistanceWorkout = Run | Bike | Swim | OtherDistance String deriving (Eq, Show)
+data CoreWorkout = Pushups | Crunches | SideDips | OtherCore String deriving (Eq, Show)
+data WeightsWorkout = Curls | Bench | OtherWeights String deriving (Eq, Show)
+data SportsWorkout = Baseball | Soccer | Frisbee | Football | OtherSports String deriving (Eq, Show)
 
+--gets a list of Strings describing the workout type
 workoutTypeToTokens :: WorkoutType -> [String]
 workoutTypeToTokens w = case w of
 	Distance _ _ _ -> 
-		["Type: " ++ (show $ dwt w)] ++ 
+		["Type: " ++ (show $ dw w)] ++ 
 		["Distance: " ++ (show $ distance w)] ++ 
 		["Time: " ++ (show $ time w)]
 	Core _ _ -> 
-		["Type: " ++ (show $ cwt w)] ++
+		["Type: " ++ (show $ cw w)] ++
 		["Reps: " ++ (show $ coreReps w)]
 	Weights _ _ _ -> 
-		["Type: " ++ (show $ wwt w)] ++ 
+		["Type: " ++ (show $ ww w)] ++ 
 		["Weight: " ++ (show $ weight w)] ++ 
 		["Reps: " ++ (show $ weightReps w)]
 	Sports _ _ ->
-		["Type: " ++ (show $ swt w)] ++
+		["Type: " ++ (show $ sw w)] ++
 		["Duration: " ++ (show $ duration w)] 
 
+--String representation of this Workout type, one token per line
 workoutTypeToString :: WorkoutType -> String
 workoutTypeToString = (unlines . workoutTypeToTokens)
 
+--tokens joined together on one line, split by |
 workoutTypeToLine :: WorkoutType -> String
 workoutTypeToLine = intercalate "|" . workoutTypeToTokens
 
