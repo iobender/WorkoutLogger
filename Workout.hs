@@ -5,17 +5,13 @@ module Workout where
 
 import Data.List
 
-type Time = Int
-
-data Workout = Workout Difficulty WorkoutType deriving (Eq, Show)
-
-data Difficulty = Easy | Medium | Hard deriving (Eq, Show)
+data Workout = Workout WorkoutType Common deriving (Eq, Show)
 
 data WorkoutType = 
 	Distance { 
 		dw :: DistanceWorkout,
 		distance :: Float,
-		time :: Time
+		time :: Int
 	} | 
 	Core {
 		cw :: CoreWorkout,
@@ -28,7 +24,7 @@ data WorkoutType =
 	} |
 	Sports {
 		sw :: SportsWorkout,
-		duration :: Time
+		duration :: Int
 	} 
 	deriving (Eq, Show)
 
@@ -57,17 +53,43 @@ workoutTypeToTokens w = case w of
 
 --String representation of this Workout type, one token per line
 workoutTypeToString :: WorkoutType -> String
-workoutTypeToString = (unlines . workoutTypeToTokens)
+workoutTypeToString = unlines . workoutTypeToTokens
 
 --tokens joined together on one line, split by |
 workoutTypeToLine :: WorkoutType -> String
 workoutTypeToLine = intercalate "|" . workoutTypeToTokens
 
 workoutToString :: Workout -> String
-workoutToString (Workout d w) = show d ++ " workout:\n" ++ indent (workoutTypeToString w)
+workoutToString (Workout w c) = "Workout:\n" ++ indent (workoutTypeToString w ++ commonToString c)
 
 workoutToLine :: Workout -> String
-workoutToLine (Workout d w) = show d ++ " workout: " ++ workoutTypeToLine w
+workoutToLine (Workout w c) = "Workout|" ++ workoutTypeToLine w ++  "|" ++ commonToLine c
 
 indent :: String -> String
-indent = unlines . map ("\t"++) . lines
+indent = unlines . map ("\t" ++) . lines
+
+data Common = Common {
+	date :: String,
+	tod :: String,
+	place :: String,
+	weather :: String,
+	diff :: Difficulty,
+	gear :: String
+} deriving (Eq, Show)
+
+data Difficulty = Easy | Medium | Hard deriving (Eq, Show)
+
+commonToTokens :: Common -> [String]
+commonToTokens (Common date tod place weather diff gear) = 
+	["Date: " ++ date] ++
+	["TOD: " ++ tod] ++ 
+	["Place: " ++ place] ++
+	["Weather: " ++ weather] ++
+	["Difficulty: " ++ show diff] ++
+	["Gear: " ++ gear] 
+
+commonToString :: Common -> String
+commonToString = unlines . commonToTokens
+
+commonToLine :: Common -> String
+commonToLine = intercalate "|" . commonToTokens
