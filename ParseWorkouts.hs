@@ -9,6 +9,16 @@ import Workout
 lookup' :: String -> [(String, a)] -> Maybe a
 lookup' = lookup . unwords . words . map toLower
 
+getString :: String -> IO String
+getString p =
+	putStr p >>
+	hFlush stdout >>
+	getLine >>=
+	(\s -> 
+	if length (filter (not . isSpace) s) == 0 then getString p
+	else return s)
+		
+
 --reads from stdin until the line is readable for the correct type
 getRead :: Read a => String -> IO a
 getRead p = 
@@ -33,14 +43,11 @@ getLookup p m =
 --gets an entire workout from stdin. Main function to be called
 getWorkout :: IO Workout
 getWorkout = do
-	diff <- getDifficulty
 	wt <- getWorkoutTypeFunc >>= (\f -> f >>= return)
-	return $ Workout diff wt
+	com <- getCommon
+	return $ Workout wt com
 
 --the below are helper functions to aid in getting a Workout
-
-getDifficulty :: IO Difficulty
-getDifficulty = getLookup "Diff: " [("easy", Easy), ("medium", Medium), ("hard", Hard)]
 
 getWorkoutTypeFunc :: IO (IO WorkoutType)
 getWorkoutTypeFunc = getLookup "type: " [("distance", getDistanceWorkout), ("core", getCoreWorkout), ("weights", getWeightsWorkout), ("sports", getSportsWorkout)]	       
@@ -66,3 +73,18 @@ getSportsWorkout = do
 	sw <- getLookup "sports type: " [("baseball", Baseball), ("soccer", Soccer), ("frisbee", Frisbee), ("football", Football)]
 	duration <- getRead "duration: "
 	return $ Sports sw duration
+
+getCommon :: IO Common
+getCommon = do
+	date <- getString "date: "
+	tod <- getString "time of day: "
+	place <- getString "place: "
+	weather <- getString "weather: "
+	diff <- getDifficulty
+	gear <- getString "gear: "
+	return $ Common date tod place weather diff gear 
+
+
+getDifficulty :: IO Difficulty
+getDifficulty = getLookup "difficulty: " [("easy", Easy), ("medium", Medium), ("hard", Hard)]
+
