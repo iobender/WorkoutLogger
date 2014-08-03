@@ -10,15 +10,15 @@ import Workout
 lookup' :: String -> [(String, a)] -> Maybe a
 lookup' = lookup . unwords . words . map toLower
 
+--reads a line from stdin that contains 1+ alpha-numeric character
 getString :: String -> IO String
 getString p =
 	putStr p >>
 	hFlush stdout >>
 	getLine >>=
 	(\s -> 
-	if length (filter isAlphaNum s) == 0 then getString p
-	else return s)
-		
+		if length (filter isAlphaNum s) == 0 then getString p
+		else return s)
 
 --reads from stdin until the line is readable for the correct type
 getRead :: Read a => String -> IO a
@@ -30,6 +30,7 @@ getRead p =
 	 	Nothing -> getRead p
 		Just v -> return v)
 
+--prints the keys of an association list
 putKeys :: [(String, a)] -> IO ()
 putKeys m = putStrLn $ concat $ map (\(k,_) -> k ++ " ") m
 
@@ -41,9 +42,9 @@ getLookup p m =
 	hFlush stdout >> 
 	getLine >>=
 	(\s -> if s == "..." then putKeys m >> getLookup p m else
-	 case lookup' s m of
-	 	Nothing -> getLookup p m 
-		Just v -> return v)
+		case lookup' s m of
+	 		Nothing -> getLookup p m 
+			Just v -> return v)
 
 --gets an entire workout from stdin. Main function to be called
 getWorkout :: IO Workout
