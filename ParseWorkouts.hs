@@ -1,5 +1,6 @@
 module ParseWorkouts where
 
+import Data.List
 import Data.Char
 import Text.Read
 import System.IO
@@ -15,7 +16,7 @@ getString p =
 	hFlush stdout >>
 	getLine >>=
 	(\s -> 
-	if length (filter (not . isSpace) s) == 0 then getString p
+	if length (filter isAlphaNum s) == 0 then getString p
 	else return s)
 		
 
@@ -29,6 +30,9 @@ getRead p =
 	 	Nothing -> getRead p
 		Just v -> return v)
 
+putKeys :: [(String, a)] -> IO ()
+putKeys m = putStrLn $ concat $ map (\(k,_) -> k ++ " ") m
+
 --given an association table, reads stdin until the one of the keys is 
 --entered, ignoring case and whitespace, and returns that value
 getLookup :: String -> [(String, a)] -> IO a
@@ -36,7 +40,8 @@ getLookup p m =
 	putStr p >> 
 	hFlush stdout >> 
 	getLine >>=
-	(\s -> case lookup' s m of
+	(\s -> if s == "..." then putKeys m >> getLookup p m else
+	 case lookup' s m of
 	 	Nothing -> getLookup p m 
 		Just v -> return v)
 
