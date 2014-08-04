@@ -4,17 +4,24 @@ import Data.List
 import Data.Char
 import Text.Read
 import System.IO
+import System.Locale
+import Data.Time
+import Data.Time.Format
+import Data.Time.Clock
+import Data.Time.Calendar
 import Workout
+
+basestr :: String -> String
+basestr = unwords . words
 
 --lookup ignoring case and whitespace
 lookup' :: String -> [(String, a)] -> Maybe a
-lookup' = lookup . unwords . words . map toLower
+lookup' = lookup . basestr . map toLower
 
 --reads a line from stdin that contains 1+ alpha-numeric character
 getString :: String -> IO String
 getString p =
-	putStr p >>
-	hFlush stdout >>
+	putStr p >> hFlush stdout >>
 	getLine >>=
 	(\s -> 
 		if length (filter isAlphaNum s) == 0 then getString p
@@ -23,8 +30,7 @@ getString p =
 --reads from stdin until the line is readable for the correct type
 getRead :: Read a => String -> IO a
 getRead p = 
-	putStr p >> 
-	hFlush stdout >> 
+	putStr p >> hFlush stdout >> 
 	getLine >>= 
 	(\s -> case readMaybe s of
 	 	Nothing -> getRead p
@@ -38,13 +44,20 @@ putKeys m = putStrLn $ concat $ map (\(k,_) -> k ++ " ") m
 --entered, ignoring case and whitespace, and returns that value
 getLookup :: String -> [(String, a)] -> IO a
 getLookup p m = 
-	putStr p >> 
-	hFlush stdout >> 
+	putStr p >> hFlush stdout >> 
 	getLine >>=
 	(\s -> if s == "..." then putKeys m >> getLookup p m else
 		case lookup' s m of
 	 		Nothing -> getLookup p m 
 			Just v -> return v)
+
+getDateTime :: String -> String -> IO UTCTime
+getDateTime p f = 
+	putStr p >> hFlush stdout >>
+	getLine >>= 
+	(\s -> case parseTime defaultTimeLocale f (basestr s) of
+	 	Nothing -> getDateTime p f
+		Just v -> return v)
 
 --gets an entire workout from stdin. Main function to be called
 getWorkout :: IO Workout
@@ -82,14 +95,18 @@ getSportsWorkout = do
 
 getCommon :: IO Common
 getCommon = do
-	date <- getString "date: "
-	tod <- getString "time of day: "
+	date <- getDateTime "date: " "%-m/%-d"
+	year <- getCurrentTime 
+	time <- getDateTime "time of day: " "%-H:%M"
 	place <- getString "place: "
 	weather <- getString "weather: "
 	diff <- getDifficulty
 	gear <- getString "gear: "
-	return $ Common date tod place weather diff gear 
+	return $ Common (buildDateTime date year time) place weather diff gear 
 
+buildDateTime :: UTCTime -> UTCTime -> UTCTime -> UTCTime
+buildDateTime date year time = 
+	readTime defaultTimeLocale "%-m/%-d/%y %H:%M" $ formatTime defaultTimeLocale "%m/%d/" date ++ formatTime defaultTimeLocale "%y " year ++ formatTime defaultTimeLocale "%H:%M" time
 
 getDifficulty :: IO Difficulty
 getDifficulty = getLookup "difficulty: " [("easy", Easy), ("medium", Medium), ("hard", Hard)]

@@ -4,6 +4,9 @@
 module Workout where
 
 import Data.List
+import System.Locale
+import Data.Time
+import Data.Time.Format
 
 data Workout = Workout WorkoutType Common deriving (Eq, Show)
 
@@ -69,8 +72,7 @@ indent :: String -> String
 indent = unlines . map ("\t" ++) . lines
 
 data Common = Common {
-	date :: String,
-	tod :: String,
+	datetime :: UTCTime,
 	place :: String,
 	weather :: String,
 	diff :: Difficulty,
@@ -80,9 +82,9 @@ data Common = Common {
 data Difficulty = Easy | Medium | Hard deriving (Eq, Show)
 
 commonToTokens :: Common -> [String]
-commonToTokens (Common date tod place weather diff gear) = 
-	["Date: " ++ date] ++
-	["TOD: " ++ tod] ++ 
+commonToTokens (Common datetime place weather diff gear) = 
+	["Date: " ++ formatTime defaultTimeLocale "%-m/%-d/%Y" datetime] ++
+	["time: " ++ formatTime defaultTimeLocale "%-I:%M %p" datetime] ++ 
 	["Place: " ++ place] ++
 	["Weather: " ++ weather] ++
 	["Difficulty: " ++ show diff] ++
