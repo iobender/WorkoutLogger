@@ -11,12 +11,15 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import Workout
 
+--formats whitespace to just single spaces between words
 basestr :: String -> String
 basestr = unwords . words
 
+--counts the times a predicate is true in a list
 count :: (a -> Bool) -> [a] -> Int
 count p = length . filter p
 
+--splits a list where a predicate is true
 splitP :: (a -> Bool) -> [a] -> [[a]]
 splitP p s = case dropWhile p s of 
 	[] -> []
@@ -63,6 +66,7 @@ getLookup p m =
 	 		Nothing -> getLookup p m 
 			Just v -> return v)
 
+--reads in a date time matching a given format
 getDateTime :: String -> String -> String -> IO UTCTime
 getDateTime p f t = 
 	putStr p >> hFlush stdout >>
@@ -73,6 +77,7 @@ getDateTime p f t =
 	 		Nothing -> getDateTime p f t
 			Just v -> return v)
 
+--reads in a time as colon separated numbers, returning it as an int
 getIntTime :: String -> String -> IO Int
 getIntTime p f = 
 	putStr p >> hFlush stdout >>
@@ -82,10 +87,13 @@ getIntTime p f =
 			Nothing -> getIntTime p f
 			Just n -> return n)
 
+--parses a string of colon separated numbers as a list
+--does limited error checking
 parseIntTime :: String -> Maybe Int
 parseIntTime s = 
 	let times = splitP (== ':') s in
-	if length times == 0 || any (\ts -> length ts > 2 ||
+	if length times == 0 
+		|| any (\ts -> length ts > 2 ||
 			any (not . isDigit) ts) times
 		then Nothing 
 	else
