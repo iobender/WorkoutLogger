@@ -14,7 +14,7 @@ data WorkoutType =
 	Distance { 
 		dw :: DistanceWorkout,
 		distance :: Float,
-		time :: DiffTime
+		seconds :: Int
 	} | 
 	Core {
 		cw :: CoreWorkout,
@@ -27,7 +27,7 @@ data WorkoutType =
 	} |
 	Sports {
 		sw :: SportsWorkout,
-		duration :: DiffTime
+		minutes :: Int
 	} 
 	deriving (Eq, Show)
 
@@ -42,7 +42,7 @@ workoutTypeToTokens w = case w of
 	Distance _ _ _ -> 
 		["Type: " ++ (show $ dw w)] ++ 
 		["Distance: " ++ (show $ distance w)] ++ 
-		["Time: " ++ (show $ timeToTimeOfDay $ time w)]
+		["Time: " ++ (intToTimeString $ seconds w)]
 	Core _ _ -> 
 		["Type: " ++ (show $ cw w)] ++
 		["Reps: " ++ (show $ coreReps w)]
@@ -52,16 +52,15 @@ workoutTypeToTokens w = case w of
 		["Reps: " ++ (show $ weightReps w)]
 	Sports _ _ ->
 		["Type: " ++ (show $ sw w)] ++
-		["Duration: " ++ (show $ timeToTimeOfDay $ time w)] 
+		["Duration: " ++ (intToTimeString $ minutes w)] 
 
-diffTimeToString :: DiffTime -> String
-diffTimeToString dt =
-	let s = show dt in
-	let n = read (takeWhile (/= '.') s) :: Integer in
-	f n where
-	f n = if n >= 60 
-		then f (n `div` 60) ++ ":" ++ show (n `mod` 60)
-		else show n
+intToTimeString :: Int -> String
+intToTimeString n = 
+	if n >= 60
+		then intToTimeString (div n 60) ++ ":" ++ pad (show (mod n 60))
+		else pad (show n)
+	where
+	pad s = (if length s < 2 then "0" else "") ++ s
 
 --String representation of this Workout type, one token per line
 workoutTypeToString :: WorkoutType -> String

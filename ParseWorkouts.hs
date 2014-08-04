@@ -17,6 +17,12 @@ basestr = unwords . words
 count :: (a -> Bool) -> [a] -> Int
 count p = length . filter p
 
+splitP :: (a -> Bool) -> [a] -> [[a]]
+splitP p s = case dropWhile p s of 
+	[] -> []
+	s' -> w : splitP p s''
+		where (w, s'') = break p s'
+
 --lookup ignoring case and whitespace
 lookup' :: String -> [(String, a)] -> Maybe a
 lookup' = lookup . basestr . map toLower
@@ -27,16 +33,19 @@ getString p =
 	putStr p >> hFlush stdout >>
 	getLine >>=
 	(\s -> 
+	 	if s == "..." then putStrLn "String" >> getString p else
 		if count isAlphaNum s == 0 then getString p
-		else return s)
+		else return (basestr s))
 
 --reads from stdin until the line is readable for the correct type
-getRead :: Read a => String -> IO a
-getRead p = 
+getRead :: Read a => String -> String -> IO a
+getRead p t = 
 	putStr p >> hFlush stdout >> 
 	getLine >>= 
-	(\s -> case readMaybe s of
-	 	Nothing -> getRead p
+	(\s -> 
+	 	if s == "..." then putStrLn t >> getRead p t else
+	 	case readMaybe (basestr s) of
+	 	Nothing -> getRead p t
 		Just v -> return v)
 
 --prints the keys of an association list
@@ -50,17 +59,39 @@ getLookup p m =
 	putStr p >> hFlush stdout >> 
 	getLine >>=
 	(\s -> if s == "..." then putKeys m >> getLookup p m else
-		case lookup' s m of
+		case lookup' (basestr s) m of
 	 		Nothing -> getLookup p m 
 			Just v -> return v)
 
-getDateTime :: String -> String -> IO UTCTime
-getDateTime p f = 
+getDateTime :: String -> String -> String -> IO UTCTime
+getDateTime p f t = 
 	putStr p >> hFlush stdout >>
 	getLine >>= 
-	(\s -> case parseTime defaultTimeLocale f (basestr s) of
-	 	Nothing -> getDateTime p f
-		Just v -> return v)
+	(\s -> 	
+	 	if s == "..." then putStrLn t >> getDateTime p f t else
+	 	case parseTime defaultTimeLocale f (basestr s) of
+	 		Nothing -> getDateTime p f t
+			Just v -> return v)
+
+getIntTime :: String -> String -> IO Int
+getIntTime p f = 
+	putStr p >> hFlush stdout >>
+	getLine >>=
+	(\s -> if s == "..." then putStrLn f >> getIntTime p f else
+	 	case parseIntTime (basestr s) of 
+			Nothing -> getIntTime p f
+			Just n -> return n)
+
+parseIntTime :: String -> Maybe Int
+parseIntTime s = 
+	let times = splitP (== ':') s in
+	if length times == 0 || any (\ts -> length ts > 2 ||
+			any (not . isDigit) ts) times
+		then Nothing 
+	else
+		let ns = map read times :: [Int] in 
+		if any (\n -> n >= 60) ns then Nothing else
+		Just (foldl' (\a n -> 60 * a + n) 0 ns)
 
 --gets an entire workout from stdin. Main function to be called
 getWorkout :: IO Workout
@@ -76,31 +107,31 @@ getWorkoutTypeFunc = getLookup "type: " [("distance", getDistanceWorkout), ("cor
 
 getDistanceWorkout = do
 	dw <- getLookup "dist type: " [("run", Run), ("bike", Bike), ("swim", Swim)]
-	distance <- getRead "distance: "
-	time <- getDateTime "time: " "%-M:%S" >>= return . utctDayTime
-	return $ Distance dw distance time
+	distance <- getRead "distance: " "Float"
+	seconds <- getIntTime "time: " "Time: MM:SS or HH:MM:SS"
+	return $ Distance dw distance seconds
 
 getCoreWorkout = do
 	cw <- getLookup "core type: " [("pushups", Pushups), ("crunches", Crunches), ("sidedips", SideDips)]
-	coreReps <- getRead "reps: "
+	coreReps <- getRead "reps: " "Integer"
 	return $ Core cw coreReps
 
 getWeightsWorkout = do
 	ww <- getLookup "weights type: " [("curls", Curls), ("bench", Bench)]
-	weight <- getRead "weight: "
-	weightReps <- getRead "reps: "
+	weight <- getRead "weight: " "Integer" 
+	weightReps <- getRead "reps: " "Integer"
 	return $ Weights ww weight weightReps
 
 getSportsWorkout = do
 	sw <- getLookup "sports type: " [("baseball", Baseball), ("soccer", Soccer), ("frisbee", Frisbee), ("football", Football)]
-	duration <- getDateTime "time: " "%-M" >>= return . utctDayTime
-	return $ Sports sw duration
+	minutes <- getIntTime "time: " "Time: MM or HH:MM"
+	return $ Sports sw minutes
 
 getCommon :: IO Common
 getCommon = do
-	date <- getDateTime "date: " "%-m/%-d"
+	date <- getDateTime "date: " "%-m/%-d" "Date: MM:DD"
 	year <- getCurrentTime 
-	time <- getDateTime "time of day: " "%-H:%M"
+	time <- getDateTime "time of day: " "%-H:%M" "Time: HH:DD"
 	place <- getString "place: "
 	weather <- getString "weather: "
 	diff <- getDifficulty
