@@ -14,6 +14,9 @@ import Workout
 basestr :: String -> String
 basestr = unwords . words
 
+count :: (a -> Bool) -> [a] -> Int
+count p = length . filter p
+
 --lookup ignoring case and whitespace
 lookup' :: String -> [(String, a)] -> Maybe a
 lookup' = lookup . basestr . map toLower
@@ -24,7 +27,7 @@ getString p =
 	putStr p >> hFlush stdout >>
 	getLine >>=
 	(\s -> 
-		if length (filter isAlphaNum s) == 0 then getString p
+		if count isAlphaNum s == 0 then getString p
 		else return s)
 
 --reads from stdin until the line is readable for the correct type
@@ -74,7 +77,7 @@ getWorkoutTypeFunc = getLookup "type: " [("distance", getDistanceWorkout), ("cor
 getDistanceWorkout = do
 	dw <- getLookup "dist type: " [("run", Run), ("bike", Bike), ("swim", Swim)]
 	distance <- getRead "distance: "
-	time <- getRead "time: "
+	time <- getDateTime "time: " "%-M:%S" >>= return . utctDayTime
 	return $ Distance dw distance time
 
 getCoreWorkout = do
@@ -90,7 +93,7 @@ getWeightsWorkout = do
 
 getSportsWorkout = do
 	sw <- getLookup "sports type: " [("baseball", Baseball), ("soccer", Soccer), ("frisbee", Frisbee), ("football", Football)]
-	duration <- getRead "duration: "
+	duration <- getDateTime "time: " "%-M" >>= return . utctDayTime
 	return $ Sports sw duration
 
 getCommon :: IO Common
