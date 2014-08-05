@@ -37,7 +37,7 @@ getString p =
 	getLine >>=
 	(\s -> 
 	 	if s == "..." then putStrLn "String" >> getString p else
-		if count isAlphaNum s == 0 then getString p
+		if s /= "-" && count isAlphaNum s == 0 then getString p
 		else return (basestr s))
 
 --reads from stdin until the line is readable for the correct type
