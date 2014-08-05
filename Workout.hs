@@ -92,7 +92,7 @@ data Difficulty = Easy | Medium | Hard deriving (Eq, Show)
 commonToTokens :: Common -> [String]
 commonToTokens (Common datetime place weather diff gear) = 
 	["Date: " ++ formatTime defaultTimeLocale "%-m/%-d/%Y" datetime] ++
-	["time: " ++ formatTime defaultTimeLocale "%-I:%M %p" datetime] ++ 
+	["TOD: " ++ formatTime defaultTimeLocale "%-I:%M %p" datetime] ++ 
 	["Place: " ++ place] ++
 	["Weather: " ++ weather] ++
 	["Difficulty: " ++ show diff] ++
