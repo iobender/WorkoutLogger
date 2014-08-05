@@ -30,6 +30,19 @@ splitP p s = case dropWhile p s of
 lookup' :: String -> [(String, a)] -> Maybe a
 lookup' = lookup . basestr . map toLower
 
+stdinLoop :: String -> String -> (String -> Maybe a) -> IO a
+stdinLoop prompt infoMsg parseFunc =
+	putStr prompt >> hFlush stdout >>
+	getLine >>=
+	(\s -> 
+	 	if s == "..." then 
+			putStrLn infoMsg >> stdinLoop prompt infoMsg parseFunc
+		else
+			case parseFunc s of 
+				Nothing -> stdinLoop prompt infoMsg parseFunc
+				Just x -> return x
+	)
+
 --reads a line from stdin that contains 1+ alpha-numeric character
 getString :: String -> IO String
 getString p =
