@@ -30,6 +30,11 @@ splitP p s = case dropWhile p s of
 lookup' :: String -> [(String, a)] -> Maybe a
 lookup' = lookup . basestr . map toLower
 
+--abstract loop for reading from stdin and checking for valid input
+--on each loop, prompt will be printed out, and the user will enter a string
+--if the string is ..., more infoMsg will be printed and the loop continues
+--otherwise, the string is passed to parseFunc
+--if parseFunc returns Nothing, the loop is repeated, else we return the value
 stdinLoop :: String -> String -> (String -> Maybe a) -> IO a
 stdinLoop prompt infoMsg parseFunc =
 	putStr prompt >> hFlush stdout >>
@@ -40,65 +45,38 @@ stdinLoop prompt infoMsg parseFunc =
 		else
 			case parseFunc s of 
 				Nothing -> stdinLoop prompt infoMsg parseFunc
-				Just x -> return x
-	)
+				Just x -> return x)
 
 --reads a line from stdin that contains 1+ alpha-numeric character
 getString :: String -> IO String
-getString p =
-	putStr p >> hFlush stdout >>
-	getLine >>=
-	(\s -> 
-	 	if s == "..." then putStrLn "String" >> getString p else
-		if s /= "-" && count isAlphaNum s == 0 then getString p
-		else return (basestr s))
+getString prompt = stdinLoop prompt "String" parseFunc
+	where
+	parseFunc s = 
+		if s /= "-" && count isAlphaNum s == 0 then Nothing
+		else Just (basestr s)
 
 --reads from stdin until the line is readable for the correct type
 getRead :: Read a => String -> String -> IO a
-getRead p t = 
-	putStr p >> hFlush stdout >> 
-	getLine >>= 
-	(\s -> 
-	 	if s == "..." then putStrLn t >> getRead p t else
-	 	case readMaybe (basestr s) of
-	 	Nothing -> getRead p t
-		Just v -> return v)
+getRead prompt infoMsg = stdinLoop prompt infoMsg (readMaybe . basestr)
 
---prints the keys of an association list
-putKeys :: [(String, a)] -> IO ()
-putKeys m = putStrLn $ concat $ map (\(k,_) -> k ++ " ") m
+--space separated keys of a map
+keysToStr :: [(String, a)] -> String
+keysToStr = concat . map (\(k,_) -> k ++ " ")
 
 --given an association table, reads stdin until the one of the keys is 
 --entered, ignoring case and whitespace, and returns that value
 getLookup :: String -> [(String, a)] -> IO a
-getLookup p m = 
-	putStr p >> hFlush stdout >> 
-	getLine >>=
-	(\s -> if s == "..." then putKeys m >> getLookup p m else
-		case lookup' (basestr s) m of
-	 		Nothing -> getLookup p m 
-			Just v -> return v)
+getLookup prompt map = stdinLoop prompt (keysToStr map) parseFunc
+	where
+	parseFunc s = lookup' (basestr s) map
 
 --reads in a date time matching a given format
 getDateTime :: String -> String -> String -> IO UTCTime
-getDateTime p f t = 
-	putStr p >> hFlush stdout >>
-	getLine >>= 
-	(\s -> 	
-	 	if s == "..." then putStrLn t >> getDateTime p f t else
-	 	case parseTime defaultTimeLocale f (basestr s) of
-	 		Nothing -> getDateTime p f t
-			Just v -> return v)
+getDateTime prompt format infoMsg = stdinLoop prompt infoMsg (parseTime defaultTimeLocale format . basestr)
 
 --reads in a time as colon separated numbers, returning it as an int
 getIntTime :: String -> String -> IO Int
-getIntTime p f = 
-	putStr p >> hFlush stdout >>
-	getLine >>=
-	(\s -> if s == "..." then putStrLn f >> getIntTime p f else
-	 	case parseIntTime (basestr s) of 
-			Nothing -> getIntTime p f
-			Just n -> return n)
+getIntTime prompt infoMsg = stdinLoop prompt infoMsg (parseIntTime . basestr)
 
 --parses a string of colon separated numbers as a list
 --does limited error checking
