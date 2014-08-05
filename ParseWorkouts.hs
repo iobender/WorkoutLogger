@@ -52,8 +52,10 @@ getString :: String -> IO String
 getString prompt = stdinLoop prompt "String" parseFunc
 	where
 	parseFunc s = 
-		if s /= "-" && count isAlphaNum s == 0 then Nothing
-		else Just (basestr s)
+		if s /= "-" && 
+			(count isAlphaNum s == 0 || any (not . isPrint) s) 
+			then Nothing
+			else Just (basestr s)
 
 --reads from stdin until the line is readable for the correct type
 getRead :: Read a => String -> String -> IO a
